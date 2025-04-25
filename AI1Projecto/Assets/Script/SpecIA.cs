@@ -28,8 +28,11 @@ public class SpecIA : MonoBehaviour
 
     void Start()
     {
+        energy = Random.Range(30f, 100f);
+        hunger = Random.Range(0f, 70f);
+
         agent = GetComponent<NavMeshAgent>();
-        ChangeState(SpectatorState.WatchingConcert);
+        agent.SetDestination(GetPosition(stages));
     }
 
     void Update()

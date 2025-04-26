@@ -19,12 +19,17 @@ public class SpecIA : MonoBehaviour
 
     private GameBrain brain;
 
-    private Transform[] stages;  // Assign the square GameObject in the Inspector
+    private Transform[] stages;  
     private Transform[] greenZones;
     private Transform[] foodZones;
     private List<Vector3> agents = new List<Vector3>();
     
     private NavMeshAgent agent;
+
+    private bool isParalyzed = false;
+    private bool isSlowedDown = false;
+    private float originalSpeed;
+    private float paralysisTimer = 0f;
 
     void Start()
     {
@@ -38,10 +43,26 @@ public class SpecIA : MonoBehaviour
         greenZones = brain.GetGreenPosition();
         foodZones = brain.GetFoodPosition();
         agent.SetDestination(GetPosition(stages));
+
+        originalSpeed = agent.speed;
     }
 
     void Update()
     {
+
+        if(isParalyzed)
+        {
+            paralysisTimer -= Time.deltaTime;
+            if(paralysisTimer <= 0f)
+            {
+                isParalyzed = false;
+                agent.isStopped = false;
+                SlowDown();
+            }
+
+            return;
+        }
+
         energy -= Time.deltaTime * 3;
         hunger += Time.deltaTime * 0.75f;
 
@@ -124,9 +145,6 @@ public class SpecIA : MonoBehaviour
 
     Vector3 GetPosition(Transform[] locations)
     {
-        /* print(locations.Length);
-        int i = Random.Range(0, locations.Length);
-        return locations[i]; */
 
         Transform chosenLocation = locations[Random.Range(0, locations.Length)];
         if (chosenLocation.GetComponent<Renderer>() == null)
@@ -166,14 +184,12 @@ public class SpecIA : MonoBehaviour
         }
 
 
-            //If there are no agents inside, just get the first random
             if (foundAgents.Count == 0)
             {
                 chosenPoint = randomPoints[0];
             }
             else
             {
-                // Find the most isolated point
                 chosenPoint = GetMostIsolatedPoint(randomPoints);
             }
         
@@ -251,5 +267,24 @@ public class SpecIA : MonoBehaviour
 
         return bestPoint;
 
+    }
+
+    public void TakeExplosion(float paralysisDuration)
+    {
+        if(!isParalyzed && !isSlowedDown)
+        {
+            isParalyzed = true;
+            paralysisTimer = paralysisDuration;
+            agent.isStopped = true;
+        }
+    }
+
+    private void SlowDown()
+    {
+        if(!isSlowedDown)
+        {
+            isSlowedDown = true;
+            agent.speed = originalSpeed * 0.5f;
+        }
     }
 }

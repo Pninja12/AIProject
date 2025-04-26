@@ -126,3 +126,5 @@ MonoBehaviour:
   agentLayer:
     serializedVersion: 2
     m_Bits: 64
+  killRadius: 3
+  fleeRadius: 8

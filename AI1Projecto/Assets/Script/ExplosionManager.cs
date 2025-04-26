@@ -12,24 +12,20 @@ public class ExplosionManager : MonoBehaviour
 
     void Update()
     {
-        timer += Time.deltaTime;
 
-        if(timer >= spawnInternal)
+        if(Input.GetMouseButtonDown(0))
         {
-            SpawnExplosion();
-            timer = 0f;
+            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            RaycastHit hit;
+
+            if(Physics.Raycast(ray, out hit))
+            {
+                Vector3 spawnPosition = hit.point;
+                spawnPosition.y += 0.5f;
+
+                Instantiate(explosionPrefab, spawnPosition, Quaternion.identity); 
+            }
         }
     }
 
-    void SpawnExplosion()
-    {
-        float randomX = Random.Range(mapMin.x, mapMax.x);
-        float randomZ = Random.Range(mapMin.y, mapMax.y);
-
-        Vector3 spawnPosition = new Vector3(randomX, 1f, randomZ);
-
-        Instantiate(explosionPrefab, spawnPosition, Quaternion.identity);
-
-        spawnInternal = Random.Range(3f, 8f);
-    }
 }

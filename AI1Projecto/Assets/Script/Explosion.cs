@@ -6,6 +6,8 @@ public class Explosion : MonoBehaviour
     [SerializeField] private float explosionRadius = 5f;
     [SerializeField] private float paralysisDuration = 5f;
     [SerializeField] private LayerMask agentLayer;
+    [SerializeField] private float killRadius = 3f;
+    [SerializeField] private float fleeRadius = 8f;
 
     void Start()
     {
@@ -15,7 +17,7 @@ public class Explosion : MonoBehaviour
 
     void Explode()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius, agentLayer);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, fleeRadius, agentLayer);
 
         foreach(Collider nearbyObject in colliders)
         {
@@ -25,13 +27,17 @@ public class Explosion : MonoBehaviour
             {
                 float distance = Vector3.Distance(transform.position, agent.transform.position);
 
-                if(distance < explosionRadius * 0.5f)
+                if(distance <= killRadius)
                 {
                     Destroy(agent.gameObject);
                 }
                 else if(distance < explosionRadius)
                 {
                     agent.TakeExplosion(paralysisDuration);
+                }
+                else if(distance <= fleeRadius)
+                {
+                    agent.FleeFromExplosion(transform.position);
                 }
             }
         }

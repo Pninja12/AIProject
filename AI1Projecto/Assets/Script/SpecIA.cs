@@ -287,4 +287,17 @@ public class SpecIA : MonoBehaviour
             agent.speed = originalSpeed * 0.5f;
         }
     }
+
+    public void FleeFromExplosion(Vector3 explosionPosition)
+    {
+        if(agent != null)
+        {
+            Vector3 fleeDirection = (transform.position - explosionPosition).normalized;
+            Vector3 fleeTarget = transform.position + fleeDirection * 10f;
+
+            agent.speed = 5f;
+            agent.isStopped = false;
+            agent.SetDestination(fleeTarget);
+        }
+    }
 }

@@ -26,9 +26,9 @@ public class AgentController : MonoBehaviour
         StartSpawningAgents(100);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void SpawnMoreAgents()
     {
-
+        StartSpawningAgents(100);
     }
+
 }

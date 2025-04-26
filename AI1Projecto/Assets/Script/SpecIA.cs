@@ -17,28 +17,33 @@ public class SpecIA : MonoBehaviour
     private float energy = 100f;
     private float hunger = 0f;
 
-    [SerializeField] private Transform[] stages;  // Assign the square GameObject in the Inspector
-    [SerializeField] private Transform[] greenZones;
-    [SerializeField] private Transform[] foodZones;
-    [SerializeField] private GameBrain brain;
+    private GameBrain brain;
 
+    private Transform[] stages;  // Assign the square GameObject in the Inspector
+    private Transform[] greenZones;
+    private Transform[] foodZones;
     private List<Vector3> agents = new List<Vector3>();
     
     private NavMeshAgent agent;
 
     void Start()
     {
+        brain = FindAnyObjectByType<GameBrain>();
         energy = Random.Range(30f, 100f);
         hunger = Random.Range(0f, 70f);
-
         agent = GetComponent<NavMeshAgent>();
+        agent.stoppingDistance = 1.0f;
+        agent.avoidancePriority = Random.Range(30, 60);
+        stages = brain.GetStagePosition();
+        greenZones = brain.GetGreenPosition();
+        foodZones = brain.GetFoodPosition();
         agent.SetDestination(GetPosition(stages));
     }
 
     void Update()
     {
-        energy -= Time.deltaTime * 5;
-        hunger += Time.deltaTime * 1.5f;
+        energy -= Time.deltaTime * 3;
+        hunger += Time.deltaTime * 0.75f;
 
         switch (currentState)
         {
@@ -47,11 +52,17 @@ public class SpecIA : MonoBehaviour
                 break;
 
             case SpectatorState.WatchingConcert:
+            if (!agent.pathPending && agent.remainingDistance
+             <= agent.stoppingDistance)
+                agent.isStopped = true;
                 if (energy < 30) ChangeState(SpectatorState.GoingToGreenZone);
-                else if (hunger > 70) ChangeState(SpectatorState.GoingToFoodZone);
+                else if(hunger > 70)ChangeState(SpectatorState.GoingToFoodZone);
                 break;
 
             case SpectatorState.GoingToGreenZone:
+            if (!agent.pathPending && agent.remainingDistance
+             <= agent.stoppingDistance)
+                agent.isStopped = true;
                 if (agent.remainingDistance < 1f)
                 {
                     energy += Time.deltaTime * 20f;
@@ -63,6 +74,9 @@ public class SpecIA : MonoBehaviour
                 }
                 break;
             case SpectatorState.GoingToFoodZone:
+            if (!agent.pathPending && agent.remainingDistance
+             <= agent.stoppingDistance)
+                agent.isStopped = true;
                 if (agent.remainingDistance < 1f)
                 {
                     hunger -= Time.deltaTime * 30f;
@@ -80,6 +94,7 @@ public class SpecIA : MonoBehaviour
     void ChangeState(SpectatorState newState)
     {
         currentState = newState;
+        agent.isStopped = false;
 
         switch (newState)
         {
@@ -114,6 +129,11 @@ public class SpecIA : MonoBehaviour
         return locations[i]; */
 
         Transform chosenLocation = locations[Random.Range(0, locations.Length)];
+        if (chosenLocation.GetComponent<Renderer>() == null)
+        {
+
+            return chosenLocation.position;
+        }
         List<Vector3> randomPoints = GenerateRandomPoints(chosenLocation);
 
         Vector3 chosenPoint = new Vector3(0,0,0);

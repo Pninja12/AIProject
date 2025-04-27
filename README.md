@@ -97,6 +97,7 @@ Foi bastante esclarecedor, durante o desenvolvimento do projeto, como teriamos d
 [Unity NavMesh Tutorial - YouTube](https://www.youtube.com/watch?v=CHV1ymlw-P8)
 [Unity Documentation - Physics.OverlapSphere](https://docs.unity3d.com/6000.1/Documentation/ScriptReference/Physics.OverlapSphere.html)
 [Unity Documentation - ScriptReference](https://docs.unity3d.com/ScriptReference/)
+ChatGPT usado para dúvidas no SpecIA, usado parcialmente no FireSpreading
 
 ## Agradecimentos
 

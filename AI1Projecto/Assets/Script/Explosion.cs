@@ -8,6 +8,8 @@ public class Explosion : MonoBehaviour
     [SerializeField] private LayerMask agentLayer;
     [SerializeField] private float killRadius = 3f;
     [SerializeField] private float fleeRadius = 8f;
+    [SerializeField] private GameObject firePrefab;
+    [SerializeField] private float fireGrowthRate = 1f;
 
     void Start()
     {
@@ -42,6 +44,8 @@ public class Explosion : MonoBehaviour
             }
         }
 
+        Instantiate(firePrefab, transform.position, Quaternion.identity);
+        
         Destroy(gameObject, 0.5f);
     }
 

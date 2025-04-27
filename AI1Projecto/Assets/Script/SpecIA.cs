@@ -7,7 +7,8 @@ public enum SpectatorState
     Idle,
     WatchingConcert,
     GoingToGreenZone,
-    GoingToFoodZone
+    GoingToFoodZone,
+    GettingOut
 }
 
 public class SpecIA : MonoBehaviour
@@ -19,11 +20,12 @@ public class SpecIA : MonoBehaviour
 
     private GameBrain brain;
 
-    private Transform[] stages;  
+    private Transform[] stages;
     private Transform[] greenZones;
     private Transform[] foodZones;
+    private Transform[] exits;
     private List<Vector3> agents = new List<Vector3>();
-    
+
     private NavMeshAgent agent;
 
     private bool isParalyzed = false;
@@ -42,6 +44,7 @@ public class SpecIA : MonoBehaviour
         stages = brain.GetStagePosition();
         greenZones = brain.GetGreenPosition();
         foodZones = brain.GetFoodPosition();
+        exits = brain.GetExitsPosition();
         agent.SetDestination(GetPosition(stages));
 
         originalSpeed = agent.speed;
@@ -49,19 +52,23 @@ public class SpecIA : MonoBehaviour
 
     void Update()
     {
-
-        if(isParalyzed)
+        if (IsOnExit(exits))
         {
-            paralysisTimer -= Time.deltaTime;
-            if(paralysisTimer <= 0f)
-            {
-                isParalyzed = false;
-                agent.isStopped = false;
-                SlowDown();
-            }
-
-            return;
+            Destroy(gameObject);
         }
+
+        if (isParalyzed)
+            {
+                paralysisTimer -= Time.deltaTime;
+                if (paralysisTimer <= 0f)
+                {
+                    isParalyzed = false;
+                    agent.isStopped = false;
+                    SlowDown();
+                }
+
+                return;
+            }
 
         energy -= Time.deltaTime * 3;
         hunger += Time.deltaTime * 0.75f;
@@ -73,17 +80,17 @@ public class SpecIA : MonoBehaviour
                 break;
 
             case SpectatorState.WatchingConcert:
-            if (!agent.pathPending && agent.remainingDistance
-             <= agent.stoppingDistance)
-                agent.isStopped = true;
+                if (!agent.pathPending && agent.remainingDistance
+                 <= agent.stoppingDistance)
+                    agent.isStopped = true;
                 if (energy < 30) ChangeState(SpectatorState.GoingToGreenZone);
-                else if(hunger > 70)ChangeState(SpectatorState.GoingToFoodZone);
+                else if (hunger > 70) ChangeState(SpectatorState.GoingToFoodZone);
                 break;
 
             case SpectatorState.GoingToGreenZone:
-            if (!agent.pathPending && agent.remainingDistance
-             <= agent.stoppingDistance)
-                agent.isStopped = true;
+                if (!agent.pathPending && agent.remainingDistance
+                 <= agent.stoppingDistance)
+                    agent.isStopped = true;
                 if (agent.remainingDistance < 1f)
                 {
                     energy += Time.deltaTime * 20f;
@@ -95,9 +102,9 @@ public class SpecIA : MonoBehaviour
                 }
                 break;
             case SpectatorState.GoingToFoodZone:
-            if (!agent.pathPending && agent.remainingDistance
-             <= agent.stoppingDistance)
-                agent.isStopped = true;
+                if (!agent.pathPending && agent.remainingDistance
+                 <= agent.stoppingDistance)
+                    agent.isStopped = true;
                 if (agent.remainingDistance < 1f)
                 {
                     hunger -= Time.deltaTime * 30f;
@@ -112,7 +119,7 @@ public class SpecIA : MonoBehaviour
     }
 
 
-    void ChangeState(SpectatorState newState)
+    public void ChangeState(SpectatorState newState)
     {
         currentState = newState;
         agent.isStopped = false;
@@ -130,9 +137,16 @@ public class SpecIA : MonoBehaviour
             case SpectatorState.GoingToFoodZone:
                 agent.SetDestination(GetPosition(foodZones));
                 break;
+
+            case SpectatorState.GettingOut:
+                agent.SetDestination(GetPosition(exits));
+                break;
+
             case SpectatorState.Idle:
                 agent.ResetPath();
                 break;
+
+
         }
     }
 
@@ -154,7 +168,7 @@ public class SpecIA : MonoBehaviour
         }
         List<Vector3> randomPoints = GenerateRandomPoints(chosenLocation);
 
-        Vector3 chosenPoint = new Vector3(0,0,0);
+        Vector3 chosenPoint = new Vector3(0, 0, 0);
 
 
 
@@ -184,15 +198,15 @@ public class SpecIA : MonoBehaviour
         }
 
 
-            if (foundAgents.Count == 0)
-            {
-                chosenPoint = randomPoints[0];
-            }
-            else
-            {
-                chosenPoint = GetMostIsolatedPoint(randomPoints);
-            }
-        
+        if (foundAgents.Count == 0)
+        {
+            chosenPoint = randomPoints[0];
+        }
+        else
+        {
+            chosenPoint = GetMostIsolatedPoint(randomPoints);
+        }
+
 
         return chosenPoint;
     }
@@ -226,7 +240,7 @@ public class SpecIA : MonoBehaviour
         return points;
 
     }
-    
+
     Vector3 GetMostIsolatedPoint(List<Vector3> points)
 
     {
@@ -271,7 +285,7 @@ public class SpecIA : MonoBehaviour
 
     public void TakeExplosion(float paralysisDuration)
     {
-        if(!isParalyzed && !isSlowedDown)
+        if (!isParalyzed && !isSlowedDown)
         {
             isParalyzed = true;
             paralysisTimer = paralysisDuration;
@@ -281,7 +295,7 @@ public class SpecIA : MonoBehaviour
 
     private void SlowDown()
     {
-        if(!isSlowedDown)
+        if (!isSlowedDown)
         {
             isSlowedDown = true;
             agent.speed = originalSpeed * 0.5f;
@@ -290,7 +304,7 @@ public class SpecIA : MonoBehaviour
 
     public void FleeFromExplosion(Vector3 explosionPosition)
     {
-        if(agent != null)
+        if (agent != null)
         {
             Vector3 fleeDirection = (transform.position - explosionPosition).normalized;
             Vector3 fleeTarget = transform.position + fleeDirection * 10f;
@@ -299,5 +313,28 @@ public class SpecIA : MonoBehaviour
             agent.isStopped = false;
             agent.SetDestination(fleeTarget);
         }
+    }
+
+    bool IsOnExit(Transform[] exits)
+    {
+        foreach (Transform exit in exits)
+        {
+            Vector3 exitCenter = exit.position;
+            Vector3 exitSize = exit.localScale;
+            Vector3 agentPos = transform.position;
+
+            float halfX = exitSize.x / 2f;
+            float halfZ = exitSize.z / 2f;
+
+            bool insideX = agentPos.x >= (exitCenter.x - halfX)
+             && agentPos.x <= (exitCenter.x + halfX);
+            bool insideZ = agentPos.z >= (exitCenter.z - halfZ)
+             && agentPos.z <= (exitCenter.z + halfZ);
+
+            if (insideX && insideZ)
+                return true;
+        }
+        return false;
+        
     }
 }

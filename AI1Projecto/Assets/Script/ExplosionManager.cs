@@ -3,7 +3,7 @@ using UnityEngine;
 public class ExplosionManager : MonoBehaviour
 {
     [SerializeField] private GameObject explosionPrefab;
-    [SerializeField] private float spawnInternal = 5f;
+    //[SerializeField] private float spawnInternal = 5f;
     [SerializeField] private Vector2 mapMin;
     [SerializeField] private Vector2 mapMax;
 

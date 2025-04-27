@@ -1,5 +1,4 @@
 using UnityEngine;
-
 public class Explosion : MonoBehaviour
 {
 
@@ -9,12 +8,22 @@ public class Explosion : MonoBehaviour
     [SerializeField] private float killRadius = 3f;
     [SerializeField] private float fleeRadius = 8f;
     [SerializeField] private GameObject firePrefab;
-    [SerializeField] private float fireGrowthRate = 1f;
+    //[SerializeField] private float fireGrowthRate = 1f;
+
+    private GameBrain brain;
+
 
     void Start()
     {
+        brain = FindAnyObjectByType<GameBrain>();
         Explode();
         HighlightExplosionArea();
+        
+    }
+
+    void Update()
+    {
+        
     }
 
     void Explode()
@@ -31,6 +40,7 @@ public class Explosion : MonoBehaviour
 
                 if(distance <= killRadius)
                 {
+                    brain.UpdateDead();
                     Destroy(agent.gameObject);
                 }
                 else if(distance < explosionRadius)
@@ -39,7 +49,8 @@ public class Explosion : MonoBehaviour
                 }
                 else if(distance <= fleeRadius)
                 {
-                    agent.FleeFromExplosion(transform.position);
+                    agent.ChangeState(SpectatorState.GettingOut);
+                    //agent.FleeFromExplosion(transform.position);
                 }
             }
         }
